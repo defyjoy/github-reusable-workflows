@@ -24,7 +24,7 @@ jobs:
       packages: write
     steps:
       - name: Promote image to staging
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.event.inputs.source-tag }}
@@ -44,7 +44,7 @@ jobs:
       packages: write
     steps:
       - name: Promote to production with multiple tags
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: v1.2.3
@@ -65,7 +65,7 @@ jobs:
       packages: write
     steps:
       - name: Promote from Docker Hub to GHCR
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: docker.io/myorg/my-app
           source-tag: dev-latest
@@ -87,7 +87,7 @@ jobs:
       packages: write
     steps:
       - name: Promote image
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/other-org/my-app
           source-tag: v1.0.0
@@ -109,13 +109,13 @@ jobs:
       packages: write
     steps:
       - name: Build image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: my-app
           image-tag: build-123
           
       - name: Promote without pulling
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: build-123
@@ -181,7 +181,7 @@ jobs:
       packages: write
     steps:
       - name: Promote to staging
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.sha }}
@@ -208,7 +208,7 @@ jobs:
       packages: write
     steps:
       - name: Promote to production
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.event.inputs.version }}
@@ -236,7 +236,7 @@ jobs:
       packages: write
     steps:
       - name: Promote build to staging
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: build-${{ github.event.inputs.build-number }}

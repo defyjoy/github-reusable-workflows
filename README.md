@@ -11,14 +11,14 @@ This repository provides the following reusable actions:
 A composite action for building and optionally pushing Docker images with support for multiple platforms, caching, and custom configurations.
 
 **Location:** Root-level `action.yml`  
-**Usage:** `your-org/github-reusable-workflows@v1`
+**Usage:** `defyjoy/github-reusable-workflows@v1`
 
 ### 🚀 Promote Image Action
 
 A composite action for promoting Docker images from one environment to another (e.g., dev → staging → production).
 
 **Location:** `.github/actions/promote-image/action.yml`  
-**Usage:** `your-org/github-reusable-workflows/.github/actions/promote-image@v1`
+**Usage:** `defyjoy/github-reusable-workflows/.github/actions/promote-image@v1`
 
 ## Quick Start
 
@@ -39,7 +39,7 @@ jobs:
       packages: write
     steps:
       - name: Build and push Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: my-app
           push: 'true'
@@ -66,7 +66,7 @@ jobs:
       packages: write
     steps:
       - name: Promote image to staging
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.event.inputs.source-tag }}
@@ -91,7 +91,7 @@ jobs:
 ```yaml
 steps:
   - name: Build Docker image
-    uses: your-org/github-reusable-workflows@v1
+    uses: defyjoy/github-reusable-workflows@v1
     with:
       image-name: my-app
       image-tag: latest
@@ -102,7 +102,7 @@ steps:
 ```yaml
 steps:
   - name: Build and push multi-platform image
-    uses: your-org/github-reusable-workflows@v1
+    uses: defyjoy/github-reusable-workflows@v1
     with:
       dockerfile: ./Dockerfile.prod
       context: .
@@ -154,7 +154,7 @@ For detailed documentation, see [Docker Build Action Documentation](docs/docker-
 ```yaml
 steps:
   - name: Promote image to staging
-    uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+    uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
     with:
       source-image: ghcr.io/owner/my-app
       source-tag: v1.2.3
@@ -168,7 +168,7 @@ steps:
 ```yaml
 steps:
   - name: Promote to production with multiple tags
-    uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+    uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
     with:
       source-image: ghcr.io/owner/my-app
       source-tag: v1.2.3
@@ -225,7 +225,7 @@ jobs:
       packages: write
     steps:
       - name: Build Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: my-app
           image-tag: ${{ github.sha }}
@@ -242,7 +242,7 @@ jobs:
       packages: write
     steps:
       - name: Promote image
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.sha }}
@@ -274,7 +274,7 @@ jobs:
       packages: write
     steps:
       - name: Build and push
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: my-app
           image-tag: ${{ github.sha }}
@@ -289,7 +289,7 @@ jobs:
       packages: write
     steps:
       - name: Promote to staging
-        uses: your-org/github-reusable-workflows/.github/actions/promote-image@v1
+        uses: defyjoy/github-reusable-workflows/.github/actions/promote-image@v1
         with:
           source-image: ghcr.io/owner/my-app
           source-tag: ${{ github.event.inputs.tag }}

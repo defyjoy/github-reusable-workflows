@@ -23,7 +23,7 @@ jobs:
       packages: write
     steps:
       - name: Build Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: my-app
           image-tag: latest
@@ -48,7 +48,7 @@ jobs:
       packages: write
     steps:
       - name: Build and push Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           dockerfile: ./Dockerfile.prod
           context: .
@@ -120,7 +120,7 @@ jobs:
       packages: write
     steps:
       - name: Build and push Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: api-server
           push: 'true'
@@ -138,7 +138,7 @@ jobs:
       packages: write
     steps:
       - name: Build Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           dockerfile: ./docker/Dockerfile
           image-name: backend-service
@@ -155,7 +155,7 @@ jobs:
       packages: write
     steps:
       - name: Build Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: web-app
           build-args: '{"NODE_ENV":"production","API_URL":"https://api.example.com"}'
@@ -172,7 +172,7 @@ jobs:
       packages: write
     steps:
       - name: Build and push multi-platform Docker image
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: multi-arch-app
           platforms: linux/amd64,linux/arm64,linux/arm/v7
@@ -191,7 +191,7 @@ jobs:
       packages: write
     steps:
       - name: Build with cache
-        uses: your-org/github-reusable-workflows@v1
+        uses: defyjoy/github-reusable-workflows@v1
         with:
           image-name: cached-build
           push: 'true'
