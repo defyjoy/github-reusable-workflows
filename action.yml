@@ -1,0 +1,108 @@
+name: 'Docker Build'
+description: 'Build and optionally push Docker images with support for multi-platform builds, caching, and custom configurations'
+
+inputs:
+  dockerfile:
+    description: 'Path to Dockerfile'
+    required: false
+    default: 'Dockerfile'
+  context:
+    description: 'Build context path'
+    required: false
+    default: '.'
+  image-name:
+    description: 'Docker image name'
+    required: true
+  image-tag:
+    description: 'Docker image tag'
+    required: false
+    default: 'latest'
+  registry:
+    description: 'Docker registry (e.g., ghcr.io, docker.io)'
+    required: false
+  push:
+    description: 'Whether to push the image to registry'
+    required: false
+    default: 'false'
+  platforms:
+    description: 'Comma-separated list of platforms to build for (e.g., linux/amd64,linux/arm64)'
+    required: false
+  build-args:
+    description: 'Build arguments as JSON object string (e.g., {"ARG1":"value1","ARG2":"value2"})'
+    required: false
+  cache-from:
+    description: 'Cache sources (e.g., type=registry,ref=ghcr.io/user/image:buildcache)'
+    required: false
+  cache-to:
+    description: 'Cache export (e.g., type=registry,ref=ghcr.io/user/image:buildcache,mode=max)'
+    required: false
+  labels:
+    description: 'Labels as JSON object string (e.g., {"label1":"value1","label2":"value2"})'
+    required: false
+  registry-username:
+    description: 'Docker registry username'
+    required: false
+  registry-password:
+    description: 'Docker registry password or token'
+    required: false
+
+outputs:
+  image-digest:
+    description: 'Docker image digest'
+    value: ${{ steps.build.outputs.digest }}
+  image-tags:
+    description: 'Docker image tags'
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      if: ${{ inputs.push == 'true' && inputs.registry != '' && inputs.registry != 'ghcr.io' && inputs.registry-username != '' && inputs.registry-password != '' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
+
+    - name: Log in to GitHub Container Registry
+      if: ${{ inputs.push == 'true' && (inputs.registry == '' || inputs.registry == 'ghcr.io') && inputs.registry-password != '' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ inputs.registry-username != '' && inputs.registry-username || github.actor }}
+        password: ${{ inputs.registry-password }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.registry && format('{0}/{1}', inputs.registry, inputs.image-name) || format('{0}/{1}', 'ghcr.io', format('{0}/{1}', github.repository_owner, inputs.image-name)) }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix=${{ inputs.image-tag }}-
+          type=raw,value=${{ inputs.image-tag }}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        platforms: ${{ inputs.platforms }}
+        push: ${{ inputs.push == 'true' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ inputs.labels }}
+        cache-from: ${{ inputs.cache-from }}
+        cache-to: ${{ inputs.cache-to }}
+        build-args: ${{ inputs.build-args }}
+

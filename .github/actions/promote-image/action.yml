@@ -1,0 +1,147 @@
+name: 'Promote Docker Image'
+description: 'Promote a Docker image from one environment to another by pulling, retagging, and pushing to target environment'
+
+inputs:
+  source-image:
+    description: 'Source image name (full path including registry)'
+    required: true
+  source-tag:
+    description: 'Source image tag to promote'
+    required: true
+  target-image:
+    description: 'Target image name (full path including registry)'
+    required: true
+  target-tag:
+    description: 'Target image tag for promotion'
+    required: true
+  source-registry:
+    description: 'Source registry (e.g., ghcr.io, docker.io). If not provided, extracted from source-image'
+    required: false
+  target-registry:
+    description: 'Target registry (e.g., ghcr.io, docker.io). If not provided, extracted from target-image'
+    required: false
+  source-username:
+    description: 'Source registry username (if authentication required)'
+    required: false
+  source-password:
+    description: 'Source registry password or token (if authentication required)'
+    required: false
+  target-username:
+    description: 'Target registry username (if authentication required)'
+    required: false
+  target-password:
+    description: 'Target registry password or token (if authentication required)'
+    required: false
+  additional-tags:
+    description: 'Additional tags to apply (comma-separated list, e.g., "stable,prod")'
+    required: false
+  skip-pull:
+    description: 'Skip pulling source image (use if image already exists locally)'
+    required: false
+    default: 'false'
+
+outputs:
+  promoted-image:
+    description: 'Full path of promoted image (target-image:target-tag)'
+    value: ${{ steps.promote.outputs.image }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Extract source registry
+      id: source
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.source-registry }}" ]; then
+          echo "registry=${{ inputs.source-registry }}" >> $GITHUB_OUTPUT
+        else
+          # Extract registry from source-image (format: registry/image-name)
+          SOURCE_REGISTRY=$(echo "${{ inputs.source-image }}" | cut -d'/' -f1)
+          echo "registry=$SOURCE_REGISTRY" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Extract target registry
+      id: target
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.target-registry }}" ]; then
+          echo "registry=${{ inputs.target-registry }}" >> $GITHUB_OUTPUT
+        else
+          # Extract registry from target-image (format: registry/image-name)
+          TARGET_REGISTRY=$(echo "${{ inputs.target-image }}" | cut -d'/' -f1)
+          echo "registry=$TARGET_REGISTRY" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Log in to source registry
+      if: ${{ inputs.source-password != '' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ steps.source.outputs.registry }}
+        username: ${{ inputs.source-username != '' && inputs.source-username || github.actor }}
+        password: ${{ inputs.source-password }}
+
+    - name: Log in to target registry
+      if: ${{ inputs.target-password != '' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ steps.target.outputs.registry }}
+        username: ${{ inputs.target-username != '' && inputs.target-username || github.actor }}
+        password: ${{ inputs.target-password }}
+
+    - name: Pull source image
+      if: ${{ inputs.skip-pull != 'true' }}
+      shell: bash
+      run: |
+        SOURCE_IMAGE="${{ inputs.source-image }}:${{ inputs.source-tag }}"
+        docker pull "$SOURCE_IMAGE"
+        echo "source-image=$SOURCE_IMAGE" >> $GITHUB_ENV
+
+    - name: Set source image variable
+      if: ${{ inputs.skip-pull == 'true' }}
+      shell: bash
+      run: |
+        echo "source-image=${{ inputs.source-image }}:${{ inputs.source-tag }}" >> $GITHUB_ENV
+
+    - name: Tag image for target environment
+      id: tag
+      shell: bash
+      run: |
+        SOURCE="${{ env.source-image }}"
+        TARGET="${{ inputs.target-image }}:${{ inputs.target-tag }}"
+        
+        docker tag "$SOURCE" "$TARGET"
+        echo "Promoted image: $TARGET"
+        echo "image=$TARGET" >> $GITHUB_OUTPUT
+        
+        # Apply additional tags if provided
+        if [ -n "${{ inputs.additional-tags }}" ]; then
+          IFS=',' read -ra TAGS <<< "${{ inputs.additional-tags }}"
+          for tag in "${TAGS[@]}"; do
+            ADDITIONAL_TARGET="${{ inputs.target-image }}:${tag}"
+            docker tag "$SOURCE" "$ADDITIONAL_TARGET"
+            echo "Also tagged as: $ADDITIONAL_TARGET"
+          done
+        fi
+
+    - name: Push promoted image
+      id: promote
+      shell: bash
+      run: |
+        TARGET="${{ inputs.target-image }}:${{ inputs.target-tag }}"
+        docker push "$TARGET"
+        echo "Successfully pushed: $TARGET"
+        echo "image=$TARGET" >> $GITHUB_OUTPUT
+        
+        # Push additional tags if provided
+        if [ -n "${{ inputs.additional-tags }}" ]; then
+          IFS=',' read -ra TAGS <<< "${{ inputs.additional-tags }}"
+          for tag in "${TAGS[@]}"; do
+            ADDITIONAL_TARGET="${{ inputs.target-image }}:${tag}"
+            docker push "$ADDITIONAL_TARGET"
+            echo "Successfully pushed: $ADDITIONAL_TARGET"
+          done
+        fi
+
